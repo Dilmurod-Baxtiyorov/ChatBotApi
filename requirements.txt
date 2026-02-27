@@ -1,10 +1,5 @@
 fastapi
-uvicorn
 openai
-langchain
-langchain-community
 langchain-openai
 pydantic
 python-multipart
-gradio
-faiss-cpu
