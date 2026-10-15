@@ -1,7 +1,5 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage
 
 app = FastAPI(title="Simple Uzbek Medical Chat API")
 
@@ -13,33 +11,27 @@ class Query(BaseModel):
 
 
 # -------------------------
-# Lazy LLM Initialization (IMPORTANT)
+# Mock LLM Response Logic
 # -------------------------
-llm = None
+def get_mock_response(question: str) -> str:
+    q = question.lower()
+    
+    # 1. Greeting trigger
+    if any(word in q for word in ["hello", "salom", "hi", "assalomu"]):
+        return "Hello! I am a medical advisor. What is bothering you today? Please describe your symptoms and I will try to help."
+    
+    # 2. Stomach pain trigger
+    elif any(word in q for word in ["stomach", "pain", "og'riq", "qorin", "oshqozon"]):
+        return """1. Based on your symptoms, the two most likely conditions are: Acute Gastritis or Indigestion (Dyspepsia).
+2. Measures to take for both: Follow a mild diet, avoid spicy and greasy foods, and drink plenty of warm water.
+3. Acute Gastritis is an inflammation of the stomach lining, often caused by poor diet, stress, or bacterial infection. It usually presents as upper abdominal pain, nausea, and bloating.
+4. For this condition, you should consult a Gastroenterologist.
 
-def get_llm():
-    global llm
-    if llm is None:
-        print("Initializing LLM...")
-        llm = ChatOpenAI(
-            model="gpt-4o",
-            temperature=0
-        )
-    return llm
-
-
-# -------------------------
-# System Prompt
-# -------------------------
-SYSTEM_PROMPT = """Sen tibbiy maslahatchisan. Har qanday javobingni faqat o‘zbek tilida ber.
-Agar foydalanuvchi simptomlar bo‘yicha kasallik so‘rasa:
-1. Avval ikkita eng ehtimoliy kasallikni ayt.
-2. Har ikkalasiga ham qanday choralarni ko‘rish kerakligini yoz.
-3. Faqat birinchi kasallik haqida batafsil tavsif ber.
-4. Shu kasallik bo‘yicha qaysi shifokorga murojaat qilish kerakligini ayt.
-
-Javoblaringni aniq, tushunarli va foydali qil. Shifokorga murojaat qilishni tavsiya etishni unutmang.
-"""
+Please make sure to consult a medical professional for an official diagnosis."""
+    
+    # 3. Fallback for any other question
+    else:
+        return "I understand. To ensure proper diagnosis and treatment for your health, please consult a qualified doctor."
 
 
 # -------------------------
@@ -47,15 +39,9 @@ Javoblaringni aniq, tushunarli va foydali qil. Shifokorga murojaat qilishni tavs
 # -------------------------
 @app.post("/chat")
 async def chat(query: Query):
-    model = get_llm()
-
-    messages = [
-        SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=query.question)
-    ]
-
-    response = model.invoke(messages)
+    # Faking the LLM call instantly
+    response_content = get_mock_response(query.question)
 
     return {
-        "response": response.content.strip()
+        "response": response_content
     }
